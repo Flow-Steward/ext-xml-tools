@@ -1,0 +1,8 @@
+version: '1'
+pages:
+- ref: pages/setup-guide.yaml
+- ref: pages/xml-steps-read.yaml
+- ref: pages/xml-steps-convert.yaml
+- ref: pages/xml-steps-edit.yaml
+- ref: pages/changelog.yaml
+- ref: pages/support.yaml

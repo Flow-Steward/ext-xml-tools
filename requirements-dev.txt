@@ -1,0 +1,4 @@
+# Test-only dependencies. lxml (the runtime dependency) installs from wheels/.
+pytest
+PyYAML
+flowsteward-extension-sdk==0.4.0

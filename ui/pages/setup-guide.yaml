@@ -1,0 +1,52 @@
+page_id: setup-guide
+title: Setup Guide
+description: Use XML Tools in a workflow.
+components:
+  - component_id: setup_steps
+    type: markdown
+    title: Start with XML Tools
+    body: |
+      There is nothing to connect: XML Tools works only on the documents a step is given.
+
+      1. **Get the XML into the workflow.** Download it with **File Transfer** (FTP, SFTP, S3, Dropbox) or an HTTP request step, or type it into the step. XML Tools itself never connects anywhere.
+      2. **Add an XML Tools step** and map the file to its *XML file* input, or paste the text into *XML*. Give one of the two.
+      3. **Small results** come back as values of the step (records, XPath values, the XML text up to 256 KiB). **Large results** are saved as a workflow file, the step's `file` output.
+      4. **Deliver the file** with File Transfer's *Upload file to remote storage*, or pass it to the next step.
+      5. Press **Test Run** on a step to try it: these steps change nothing outside the run, so a test run works exactly like a real one.
+  - component_id: setup_choose
+    type: markdown
+    title: Which step to use
+    body: |
+      - **A feed into records:** *Parse XML to records* for documents up to a few MB; *Parse large XML to JSONL file* for big feeds — it reads the file element by element.
+      - **One value or a few:** *Select with XPath*, for example `count(//item)` or `//item[@id='7']/price`.
+      - **Your data out as XML:** *Build XML from records* with a structure (root, record element, fields as elements or attributes, CDATA, encoding).
+      - **Is the file right?** *Check XML* for well-formedness, *Validate XML against XSD* for a schema.
+      - **Another shape:** *Transform XML with XSLT*, or convert to and from JSON, CSV and XLSX.
+      - **Change a document:** *Edit XML* (by XPath), *Merge XML documents*, *Split XML document*.
+      - **Tidy and compare:** *Format XML*, *Canonicalize XML*, *Compare XML documents*.
+  - component_id: setup_safety
+    type: markdown
+    title: Safety
+    body: |
+      - Documents with a `DOCTYPE` are refused, so no entity is defined, expanded or fetched (no XXE, no "billion laughs").
+      - XInclude is never processed. XSLT cannot read or write files, reach the network or run extensions; XSD schemas cannot load other files.
+      - Each step stops at 64 MiB for a document read whole (streaming steps read files up to the platform's file limit), 256 levels of nesting, 5 million elements and its time limit.
+      - Errors give the line and column, not the document's content.
+  - component_id: setup_structure
+    type: markdown
+    title: The structure of Build XML from records
+    body: |
+      - `root` (required): the root element, for example `products` or `rss`.
+      - `attributes`: fixed attributes of the root, for example `{"version": "2.0"}`.
+      - `namespaces`: prefixes used by the names, for example `{"g": "http://base.google.com/ns/1.0"}`; the key `""` is the default namespace.
+      - `wrapper`: elements between the root and the records, for example `["channel"]`.
+      - `record` (required): the element written for each record, for example `item`.
+      - `fields`: what each record holds, in order. Without it every key of the record becomes an element (keys starting with `@` become attributes, `#text` text, `#cdata` CDATA).
+
+      Each field has exactly one of `element`, `attribute` or `text` and takes its value from `value` (a path in the record such as `price` or `shipping.country`) or `const` (a fixed text). Options:
+
+      - `cdata`: write the text as CDATA.
+      - `required`: stop when the value is empty.
+      - `skip_empty`: leave the field out when empty (default on).
+      - `each`: repeat the element for every item of a list in the record; inside, `.` is the item.
+      - `fields`: child elements and attributes of this element.

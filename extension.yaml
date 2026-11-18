@@ -1,0 +1,86 @@
+manifest_version: 2
+lifecycle:
+  data_schema_version: 1
+  data_migrations: []
+extension_id: flowsteward.xml
+kind: tool_provider
+version: 0.1.0
+release_stage: active
+billing_mode: free
+display_name: XML Tools
+description: 'Universal XML steps for workflows: parse XML into JSON records, read huge
+  files element by element into JSONL, select with XPath 1.0, build XML from records,
+  check well-formedness and validate against an XSD, transform with XSLT, convert between
+  XML and JSON, CSV or XLSX, edit nodes by XPath, merge and split documents, format,
+  canonicalize (C14N) and compare.
+
+
+  Documents come as text or as workflow files and large results are saved as files. The
+  extension never connects anywhere: use File Transfer or an HTTP step to fetch and deliver
+  files. DTDs, external entities, XInclude and network or file access from XSLT and XSD are
+  refused, and every step runs under size, depth and time limits.'
+vendor:
+  name: Flow Steward
+  support_url: https://github.com/Flow-Steward/ext-xml-tools/issues
+  website_url: https://github.com/Flow-Steward/ext-xml-tools
+listing:
+  category: data
+  tags:
+  - xml
+  - xpath
+  - xslt
+  - xsd
+  - json
+  - csv
+  - xlsx
+  - feeds
+  summary: Parse, query, build, validate, transform, convert, edit and compare XML documents
+    and feeds in workflows.
+  categories:
+  - data
+  setup_summary: Nothing to set up. Add XML Tools steps to a workflow and give them XML as
+    text or as a workflow file, for example one File Transfer downloaded.
+features:
+- tool
+- action
+required_scopes:
+- extension:invoke
+- artifact:read
+- artifact:write
+machine_auth:
+  service_account_key: svc_ext_xml
+  required_scopes:
+  - extension:invoke
+  - artifact:read
+  - artifact:write
+account_scope:
+  scope_type: project
+  description: No connection and no stored data. Each step works only on the documents it is
+    given in that run.
+egress: {}
+external_effects: []
+runtime:
+  contract_version: extension_host_v2
+  extension_contract_v2:
+    operation_manifest: contracts/operation_manifest.yaml
+    step_ui_manifest: contracts/step_ui_manifest.yaml
+    artifact_policies: contracts/artifact_policies.yaml
+entrypoint:
+  mode: subprocess
+  command:
+  - python3
+  - main.py
+  timeout_seconds: 600
+health:
+  command:
+  - python3
+  - health.py
+  timeout_seconds: 5
+ui_manifest: ui/ui_manifest.yaml
+action_manifest: ui/actions/actions.yaml
+python_requirements:
+- name: lxml
+  version: 6.1.3
+  hashes:
+  - sha256:379f8a75cf6eb7eef0af074b55f49ab73b868388a98de14646abcdfa4564bb11
+  - sha256:f683dc6300317700025e41d89a43e0276692ded16113a3c43eab704d605c58e5

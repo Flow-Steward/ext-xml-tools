@@ -1,0 +1,2 @@
+# Runtime dependency: XPath 1.0, XSLT 1.0, XML Schema and C14N (libxml2/libxslt).
+lxml==6.1.3
