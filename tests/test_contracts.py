@@ -144,6 +144,7 @@ def test_the_lock_has_both_architectures_and_the_wheels_match() -> None:
     digests = {"sha256:" + hashlib.sha256(w.read_bytes()).hexdigest() for w in wheels}
     assert digests == set(requirement["hashes"])
     assert f"lxml=={requirement['version']}" in (BUNDLE / "requirements.in").read_text()
+    assert f"lxml=={requirement['version']}" in (BUNDLE / "requirements-dev.txt").read_text()
 
 
 def test_pages_are_short_and_have_no_tables() -> None:

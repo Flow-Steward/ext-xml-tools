@@ -8,17 +8,17 @@ version: 0.1.0
 release_stage: active
 billing_mode: free
 display_name: XML Tools
-description: 'Universal XML steps for workflows: parse XML into JSON records, read huge
-  files element by element into JSONL, select with XPath 1.0, build XML from records,
-  check well-formedness and validate against an XSD, transform with XSLT, convert between
-  XML and JSON, CSV or XLSX, edit nodes by XPath, merge and split documents, format,
-  canonicalize (C14N) and compare.
+description: 'Universal XML steps for workflows: parse XML into JSON records, read
+  huge files element by element into JSONL, select with XPath 1.0, build XML from
+  records, check well-formedness and validate against an XSD, transform with XSLT,
+  convert between XML and JSON, CSV or XLSX, edit nodes by XPath, merge and split
+  documents, format, canonicalize (C14N) and compare.
 
 
-  Documents come as text or as workflow files and large results are saved as files. The
-  extension never connects anywhere: use File Transfer or an HTTP step to fetch and deliver
-  files. DTDs, external entities, XInclude and network or file access from XSLT and XSD are
-  refused, and every step runs under size, depth and time limits.'
+  Documents come as text or as workflow files and large results are saved as files.
+  The extension never connects anywhere: use File Transfer or an HTTP step to fetch
+  and deliver files. DTDs, external entities, XInclude and network or file access
+  from XSLT and XSD are refused, and every step runs under size, depth and time limits.'
 vendor:
   name: Flow Steward
   support_url: https://github.com/Flow-Steward/ext-xml-tools/issues
@@ -34,12 +34,12 @@ listing:
   - csv
   - xlsx
   - feeds
-  summary: Parse, query, build, validate, transform, convert, edit and compare XML documents
-    and feeds in workflows.
+  summary: Parse, query, build, validate, transform, convert, edit and compare XML
+    documents and feeds in workflows.
   categories:
   - data
-  setup_summary: Nothing to set up. Add XML Tools steps to a workflow and give them XML as
-    text or as a workflow file, for example one File Transfer downloaded.
+  setup_summary: Nothing to set up. Add XML Tools steps to a workflow and give them
+    XML as text or as a workflow file, for example one File Transfer downloaded.
 features:
 - tool
 - action
@@ -55,8 +55,8 @@ machine_auth:
   - artifact:write
 account_scope:
   scope_type: project
-  description: No connection and no stored data. Each step works only on the documents it is
-    given in that run.
+  description: No connection and no stored data. Each step works only on the documents
+    it is given in that run.
 egress: {}
 external_effects: []
 runtime:

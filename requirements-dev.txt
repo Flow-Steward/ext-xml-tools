@@ -1,4 +1,6 @@
-# Test-only dependencies. lxml (the runtime dependency) installs from wheels/.
+# Test dependencies, installed offline from dev-wheels/ and wheels/.
+# lxml is the runtime dependency (hash-locked in extension.yaml); the tests need it too.
+lxml==6.1.3
 pytest
 PyYAML
 flowsteward-extension-sdk==0.4.0
