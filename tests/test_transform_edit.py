@@ -274,7 +274,9 @@ def test_split_keeps_the_frame_and_header() -> None:
     assert [p["records"] for p in result["parts"]] == [3, 3, 1]
     with zipfile.ZipFile(io.BytesIO(body)) as archive:
         assert archive.namelist() == ["part-00001.xml", "part-00002.xml", "part-00003.xml"]
-        last = etree.fromstring(archive.read("part-00003.xml"))
+        raw = archive.read("part-00003.xml")
+        last = etree.fromstring(raw)
+    assert raw.startswith(b'<?xml version="1.0" encoding="UTF-8"?>\n<rss')
     assert last.tag == "rss" and last.get("version") == "2.0"
     assert last.findtext("channel/title") == "T"
     assert [e.text for e in last.iter("id")] == ["7"]

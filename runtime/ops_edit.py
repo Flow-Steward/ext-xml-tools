@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import copy
-import io
 import zipfile
 from collections.abc import Mapping
 from typing import Any
@@ -317,9 +316,8 @@ def split_xml(job: Job) -> dict[str, Any]:
                 holder.append(copy.deepcopy(node))
             holder.extend(current)
             name = f"part-{len(parts) + 1:05d}.xml"
-            buffer = io.BytesIO()
-            etree.ElementTree(top).write(buffer, encoding="UTF-8", xml_declaration=True)
-            archive.writestr(name, buffer.getvalue())
+            body = etree.tostring(top, encoding="UTF-8", xml_declaration=False)
+            archive.writestr(name, b'<?xml version="1.0" encoding="UTF-8"?>\n' + body)
             parts.append({"name": name, "records": len(current)})
             current.clear()
 
