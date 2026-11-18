@@ -532,7 +532,8 @@ OPERATIONS: tuple[Operation, ...] = (
         "Applies an XSLT 1.0 stylesheet. The stylesheet cannot read or write files, reach the "
         "network or call extensions: document(), xsl:import, xsl:include and exsl:document are "
         "refused. The file follows xsl:output method: xml gives result.xml, html result.html, "
-        "text result.txt.",
+        "text result.txt. An HTML result is shown as plain text, because Flow Steward does not "
+        "display HTML files.",
         (
             _xml(),
             Document(
