@@ -129,7 +129,7 @@ components:
 
     ### Validate XML against XSD
 
-    Validates a document against an XML Schema (XSD 1.0) given as text or a file. Returns valid and each error with its line and column. The schema must be one file: xs:include, xs:import, xs:redefine and xs:override with a schemaLocation are refused, nothing is loaded from the network or the disk.
+    Validates a document against an XML Schema (XSD 1.0) given as text or a file. Returns valid and each error with its line and column. A schema made of several files gets the others as files or one ZIP: xs:include, xs:import and xs:redefine are resolved only among them, by name. URLs, absolute paths and ../ are refused; nothing is loaded from the network or the disk.
 
     Action id `validate_xsd` · returns values
 
@@ -139,6 +139,9 @@ components:
     - `xml_file` (workflow file): The XML as a workflow file (for example from File Transfer), or give it as text instead.
     - `schema` (text): The XSD as text. Give it here or as a file, not both.
     - `schema_file` (workflow file): The schema as a workflow file (for example from File Transfer), or give it as text instead.
+    - `schema_files` (list): The schema's other files (included or imported), as workflow files or one ZIP of them. Only these are ever read.
+    - `schema_name` (text): The main schema's own name, from which its xs:include and xs:import paths are read, for example feed.xsd. Default: the file's name, or schema.xsd for text.
+    - `schema_file_names` (list): Names for the other schema files, in the same order, as the main schema refers to them, for example ["types.xsd", "common/units.xsd"]. Default: each file's own name. A ZIP keeps the names inside it.
     - `max_errors` (whole number): List at most this many errors. Default 100.
 
     **Results**

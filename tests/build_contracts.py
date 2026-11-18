@@ -145,7 +145,7 @@ def document_inputs(document: specs.Document) -> list[dict[str, Any]]:
                 "schema": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "title": "Documents as files",
+                    "title": MANY_TITLES[document.file_field],
                     "description": file_description,
                 },
             }
@@ -162,7 +162,17 @@ def document_inputs(document: specs.Document) -> list[dict[str, Any]]:
     return items
 
 
+MANY_TITLES = {"xml_files": "Documents as files", "schema_files": "Other schema files"}
+#: Inputs that hold a list of workflow files.
+FILE_LISTS = frozenset(MANY_TITLES)
+
+
 def _file_description(document: specs.Document) -> str:
+    if document.file_field == "schema_files":
+        return (
+            "The schema's other files (included or imported), as workflow files or one ZIP of "
+            "them. Only these are ever read."
+        )
     if document.many:
         return "The documents as workflow files, in order (for example from File Transfer)."
     if document.kind == "xlsx":
@@ -351,7 +361,7 @@ def actions() -> dict[str, Any]:
 
 
 def _widget(item: dict[str, Any], field: specs.Field | None) -> str:
-    if item["value_type"] == "artifact_handle" or item["name"] == "xml_files":
+    if item["value_type"] == "artifact_handle" or item["name"] in FILE_LISTS:
         return "artifact_picker"
     if field is not None and field.options:
         return "select"

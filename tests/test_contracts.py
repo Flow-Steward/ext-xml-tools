@@ -96,7 +96,10 @@ def test_every_input_has_a_form_field_and_files_use_the_file_picker() -> None:
         for item in op["inputs"]:
             assert item["name"] in fields, (op["operation_id"], item["name"])
             field = fields[item["name"]]
-            if item["value_type"] == "artifact_handle" or item["name"] == "xml_files":
+            if (
+                item["value_type"] == "artifact_handle"
+                or item["name"] in build_contracts.FILE_LISTS
+            ):
                 assert field["widget_type"] == "artifact_picker"
             assert field["label"] and field["help_text"]
         assert set(fields) == {i["name"] for i in op["inputs"]}
@@ -112,7 +115,7 @@ def test_every_file_input_and_output_has_its_policy() -> None:
         for document in op.documents:
             entry = fields[document.file_field]
             assert entry["binding_key"] == document.file_field
-            assert entry["required"] is (document.text_field is None)
+            assert entry["required"] is (document.required and document.text_field is None)
             assert entry["max_size_env"] == "FS_EXTENSION_ARTIFACT_MAX_BYTES"
         if op.file_output is None:
             assert "outputs" not in policy

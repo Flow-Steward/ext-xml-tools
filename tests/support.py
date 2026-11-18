@@ -37,28 +37,45 @@ class Plane:
         return self.saved[-1]["body"]
 
 
+def _entries(value: Any) -> list[tuple[Any, ...]]:
+    return list(value) if isinstance(value, list) else [value]
+
+
 def payload(
     operation_id: str,
     inputs: dict[str, Any] | None = None,
     *,
-    files: dict[str, tuple[str, bytes]] | None = None,
+    files: dict[str, Any] | None = None,
     test_mode: bool = False,
 ) -> dict[str, Any]:
-    """A host request. ``files``: input name → (artifact id, bytes); the input gets the handle."""
+    """A host request.
+
+    ``files``: input name → (artifact id, bytes[, file name]) or a list of them; the input
+    gets the handle (a list of handles for a list).
+    """
     action_input = dict(inputs or {})
     descriptors = []
-    for name, (artifact_id, _data) in (files or {}).items():
-        handle = f"artifact:{artifact_id}"
+    for name, value in (files or {}).items():
+        handles = []
+        for entry in _entries(value):
+            artifact_id = entry[0]
+            handle = f"artifact:{artifact_id}"
+            handles.append(handle)
+            descriptor = {
+                "artifact_id": artifact_id,
+                "artifact_handle": handle,
+                "binding_key": name,
+            }
+            if len(entry) > 2:
+                descriptor["filename"] = entry[2]
+            descriptors.append(descriptor)
         existing = action_input.get(name)
         if isinstance(existing, list):
-            existing.append(handle)
-        elif name.endswith("_files"):
-            action_input[name] = [handle]
+            existing.extend(handles)
+        elif isinstance(value, list) or name.endswith("_files"):
+            action_input[name] = handles
         else:
-            action_input[name] = handle
-        descriptors.append(
-            {"artifact_id": artifact_id, "artifact_handle": handle, "binding_key": name}
-        )
+            action_input[name] = handles[0]
     return {
         "contract_version": "extension_host_v2",
         "mode": "action",
@@ -87,14 +104,15 @@ def run(
     operation_id: str,
     inputs: dict[str, Any] | None = None,
     *,
-    files: dict[str, tuple[str, bytes]] | None = None,
+    files: dict[str, Any] | None = None,
     test_mode: bool = False,
     plane: Plane | None = None,
     step_seconds: float | None = None,
 ) -> tuple[dict[str, Any], Plane]:
     plane = plane or Plane()
-    for artifact_id, data in (files or {}).values():
-        plane.inputs[artifact_id] = data
+    for value in (files or {}).values():
+        for entry in _entries(value):
+            plane.inputs[entry[0]] = entry[1]
     request = payload(operation_id, inputs, files=files, test_mode=test_mode)
     kwargs: dict[str, Any] = {"streamer": plane.streamer, "writer": plane.writer}
     if step_seconds is not None:

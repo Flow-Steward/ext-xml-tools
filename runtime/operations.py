@@ -84,7 +84,12 @@ def handle_runtime(
 def _described(source: Any) -> Any:
     if isinstance(source, list):
         return [_described(item) for item in source]
-    return {"label": source.label, "path": source.path, "from_text": source.from_text}
+    return {
+        "label": source.label,
+        "path": source.path,
+        "from_text": source.from_text,
+        "filename": source.filename,
+    }
 
 
 def _envelope(payload: Mapping[str, Any]) -> tuple[str, Any]:
@@ -248,7 +253,7 @@ def _many(
                 payload,
                 value,
                 binding_key=document.file_field,
-                label=f"Document {len(found) + 1}",
+                label=f"{document.item_label} {len(found) + 1}",
                 target_path=os.path.join(workdir, f"in-{number}-{index}"),
                 max_bytes=document.max_bytes,
                 streamer=streamer,
@@ -259,7 +264,10 @@ def _many(
             raise invalid(f"{document.text_field} must be a list of texts")
         found.append(
             _text_file(
-                f"Document {len(found) + 1}", _text_bytes(value), workdir, f"text-{number}-{index}"
+                f"{document.item_label} {len(found) + 1}",
+                _text_bytes(value),
+                workdir,
+                f"text-{number}-{index}",
             )
         )
     return found

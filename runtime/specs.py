@@ -55,6 +55,8 @@ class Document:
     many: bool = False
     streaming: bool = False
     max_bytes: int = limits.MAX_DOCUMENT_BYTES
+    #: How one item of a list of documents is named in messages.
+    item_label: str = "Document"
 
 
 @dataclass(frozen=True)
@@ -459,9 +461,10 @@ OPERATIONS: tuple[Operation, ...] = (
         "Validate XML against XSD",
         "check",
         "Validates a document against an XML Schema (XSD 1.0) given as text or a file. Returns "
-        "valid and each error with its line and column. The schema must be one file: "
-        "xs:include, xs:import, xs:redefine and xs:override with a schemaLocation are refused, "
-        "nothing is loaded from the network or the disk.",
+        "valid and each error with its line and column. A schema made of several files gets "
+        "the others as files or one ZIP: xs:include, xs:import and xs:redefine are resolved "
+        "only among them, by name. URLs, absolute paths and ../ are refused; nothing is loaded "
+        "from the network or the disk.",
         (
             _xml(),
             Document(
@@ -473,8 +476,36 @@ OPERATIONS: tuple[Operation, ...] = (
                 "The XSD as text. Give it here or as a file, not both.",
                 max_bytes=limits.MAX_AUXILIARY_BYTES,
             ),
+            Document(
+                "schema_parts",
+                "The other schema files",
+                None,
+                "schema_files",
+                "schema_set",
+                "",
+                required=False,
+                many=True,
+                max_bytes=limits.MAX_SCHEMA_SET_BYTES,
+                item_label="Schema file",
+            ),
         ),
         (
+            Field(
+                "schema_name",
+                "text",
+                "Schema file name",
+                "The main schema's own name, from which its xs:include and xs:import paths are "
+                "read, for example feed.xsd. Default: the file's name, or schema.xsd for text.",
+                max_length=255,
+            ),
+            Field(
+                "schema_file_names",
+                "array",
+                "Other schema file names",
+                "Names for the other schema files, in the same order, as the main schema refers "
+                'to them, for example ["types.xsd", "common/units.xsd"]. Default: each file\'s '
+                "own name. A ZIP keeps the names inside it.",
+            ),
             Field(
                 "max_errors",
                 "integer",

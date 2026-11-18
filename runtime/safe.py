@@ -46,8 +46,14 @@ class _NoLoading(etree.Resolver):
 
 
 def make_parser(
-    *, encoding: str | None = None, remove_comments: bool = False, remove_blank_text: bool = False
+    *,
+    encoding: str | None = None,
+    remove_comments: bool = False,
+    remove_blank_text: bool = False,
+    resolver: etree.Resolver | None = None,
 ) -> etree.XMLParser:
+    """The safe parser. Its one resolver answers every load: with nothing by default, or
+    only from a given set (a schema's files)."""
     parser = etree.XMLParser(
         encoding=encoding,
         remove_comments=remove_comments,
@@ -55,7 +61,7 @@ def make_parser(
         strip_cdata=False,
         **SAFE_PARSER_OPTIONS,
     )
-    parser.resolvers.add(_NoLoading())
+    parser.resolvers.add(resolver if resolver is not None else _NoLoading())
     return parser
 
 

@@ -19,6 +19,10 @@ MAX_DOCUMENT_BYTES = 64 * MiB
 MAX_STREAM_BYTES = 2048 * MiB
 #: A schema or a stylesheet.
 MAX_AUXILIARY_BYTES = 8 * MiB
+#: The other files of a schema together (or one ZIP of them, unpacked).
+MAX_SCHEMA_SET_BYTES = 64 * MiB
+#: Files in a schema set.
+MAX_SCHEMA_FILES = 500
 #: Nesting depth of elements.
 MAX_DEPTH = 256
 #: Elements in a document read whole.

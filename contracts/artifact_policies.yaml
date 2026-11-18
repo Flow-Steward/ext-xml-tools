@@ -80,6 +80,13 @@ artifact_policies:
     required: false
     max_size_bytes: 209715200
     max_size_env: FS_EXTENSION_ARTIFACT_MAX_BYTES
+  - kind: artifact
+    value_type: artifact_handle
+    binding_key: schema_files
+    field: schema_files
+    required: false
+    max_size_bytes: 209715200
+    max_size_env: FS_EXTENSION_ARTIFACT_MAX_BYTES
 - operation_id: transform_xslt
   inputs:
   - kind: artifact

@@ -27,6 +27,8 @@ class Source:
     data: bytes | None = None
     path: str | None = None
     from_text: bool = False
+    #: The workflow file's own name, as the host gives it ("" when unknown).
+    filename: str = ""
 
     @property
     def size(self) -> int:
@@ -124,7 +126,12 @@ def download(
         raise ExtensionError(
             errors.ARTIFACT_INPUT_UNAVAILABLE, f"{label} could not be read from the workflow file"
         ) from None
-    return Source(label=label, path=target_path)
+    filename = descriptor.get("filename")
+    return Source(
+        label=label,
+        path=target_path,
+        filename=filename.strip() if isinstance(filename, str) else "",
+    )
 
 
 def file_chunks(path: str) -> Iterator[bytes]:

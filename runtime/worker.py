@@ -27,7 +27,12 @@ from runtime.sandbox import where
 def _source(entry: Any) -> Any:
     if isinstance(entry, list):
         return [_source(item) for item in entry]
-    return Source(label=entry["label"], path=entry["path"], from_text=bool(entry["from_text"]))
+    return Source(
+        label=entry["label"],
+        path=entry["path"],
+        from_text=bool(entry["from_text"]),
+        filename=str(entry.get("filename") or ""),
+    )
 
 
 def run(task: dict[str, Any]) -> dict[str, Any]:

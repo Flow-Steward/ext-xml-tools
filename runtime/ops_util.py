@@ -7,7 +7,7 @@ from typing import Any
 
 from lxml import etree
 
-from . import convert, errors, limits, safe
+from . import convert, errors, limits, safe, xsd_set
 from .errors import ExtensionError
 from .job import Job, write_xml
 
@@ -38,43 +38,12 @@ def _log_entries(log: Any, limit: int) -> list[dict[str, Any]]:
 # XSD
 
 
-def _refuse_schema_loading(schema: Any) -> None:
-    for tag in ("include", "import", "redefine", "override"):
-        for node in schema.iter(f"{{{XSD}}}{tag}"):
-            if node.get("schemaLocation") is not None:
-                raise ExtensionError(
-                    errors.SCHEMA_IMPORT_REFUSED,
-                    f"The schema has xs:{tag} with a schemaLocation (line {node.sourceline}); "
-                    "other schema files are never loaded. Put everything into one schema.",
-                )
-
-
 def validate_xsd(job: Job) -> dict[str, Any]:
-    schema_source = job.source("schema")
-    try:
-        schema_tree = safe.parse_document(
-            schema_source.read(limits.MAX_AUXILIARY_BYTES),
-            what=schema_source.label,
-            from_text=schema_source.from_text,
-            max_bytes=limits.MAX_AUXILIARY_BYTES,
-        )
-    except ExtensionError as exc:
-        if exc.code == errors.INVALID_XML:
-            raise ExtensionError(errors.INVALID_SCHEMA, exc.message) from None
-        raise
-    if schema_tree.getroot().tag != f"{{{XSD}}}schema":
-        raise ExtensionError(errors.INVALID_SCHEMA, "The schema's root is not xs:schema")
-    _refuse_schema_loading(schema_tree)
-    try:
-        schema = etree.XMLSchema(schema_tree)
-    except etree.XMLSchemaParseError as exc:
-        entries = _log_entries(exc.error_log, 1)
-        detail = entries[0]["message"] if entries else errors.safe_text(exc, 200)
-        line = entries[0]["line"] if entries else None
-        where = f" at line {line}" if line else ""
-        raise ExtensionError(
-            errors.INVALID_SCHEMA, f"The schema is not valid{where}: {detail}"
-        ) from None
+    main = job.source("schema")
+    parts = job.sources.get("schema_parts") or []
+    names = job.values.get("schema_file_names")
+    main_name, files = xsd_set.collect(main, job.values.get("schema_name"), parts, names)
+    schema = xsd_set.compile_schema(main_name, files, main_from_text=main.from_text)
     try:
         tree = job.tree()
     except ExtensionError as exc:

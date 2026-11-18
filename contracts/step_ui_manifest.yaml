@@ -289,6 +289,25 @@ forms:
     widget_type: artifact_picker
     required: false
     help_text: The schema as a workflow file (for example from File Transfer), or give it as text instead.
+  - name: schema_files
+    label: Other schema files
+    widget_type: artifact_picker
+    required: false
+    help_text: The schema's other files (included or imported), as workflow files or one ZIP of them.
+      Only these are ever read.
+  - name: schema_name
+    label: Schema file name
+    widget_type: text
+    required: false
+    help_text: 'The main schema''s own name, from which its xs:include and xs:import paths are read, for
+      example feed.xsd. Default: the file''s name, or schema.xsd for text.'
+  - name: schema_file_names
+    label: Other schema file names
+    widget_type: json
+    required: false
+    help_text: 'Names for the other schema files, in the same order, as the main schema refers to them,
+      for example ["types.xsd", "common/units.xsd"]. Default: each file''s own name. A ZIP keeps the names
+      inside it.'
   - name: max_errors
     label: Max errors
     widget_type: number
