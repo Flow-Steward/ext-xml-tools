@@ -39,6 +39,32 @@ def where(exc: BaseException) -> str:
     return f"{type(exc).__name__} at {path}:{frame.lineno} in {frame.name}"
 
 
+#: The only variables the worker gets: where Python and the bundle's libraries are.
+_DEFAULT_PATH = "/usr/local/bin:/usr/bin:/bin"
+
+
+def worker_environment(root: str) -> dict[str, str]:
+    """A minimal environment for the worker, not a copy of ``os.environ``.
+
+    The worker needs Python, this bundle and the libraries this process imports, and a
+    place for temporary files; nothing else, so no secret or setting of the host process
+    reaches it. Its ``PYTHONPATH`` is this bundle and this process's own import path, so it
+    imports exactly what this process does (the host's site and SDK, or a test venv).
+    """
+    search = [root, *(entry for entry in sys.path if entry and os.path.isdir(entry))]
+    environment = {
+        "PATH": os.environ.get("PATH") or _DEFAULT_PATH,
+        "PYTHONPATH": os.pathsep.join(dict.fromkeys(search)),
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONIOENCODING": "utf-8",
+        "LC_ALL": "C.UTF-8",
+    }
+    temporary = os.environ.get("TMPDIR")
+    if temporary:
+        environment["TMPDIR"] = temporary
+    return environment
+
+
 def _timeout(seconds: float) -> ExtensionError:
     return ExtensionError(
         errors.TIMEOUT, f"The work did not finish in {int(seconds)} seconds and was stopped"
@@ -55,16 +81,12 @@ def run_worker(task: dict[str, Any], *, seconds: float, workdir: str) -> Any:
     with open(task_path, "w", encoding="utf-8") as handle:
         json.dump(task, handle, ensure_ascii=False, default=str)
     root = str(WORKER.parents[1])
-    environment = dict(os.environ)
-    environment.pop("PYTHONSAFEPATH", None)
-    inherited = environment.get("PYTHONPATH")
-    environment["PYTHONPATH"] = root + (os.pathsep + inherited if inherited else "")
     try:
         # Fixed argv: this interpreter and this bundle's worker module, no shell.
         finished = subprocess.run(  # nosec B603
             [sys.executable, "-m", "runtime.worker", task_path],
             cwd=root,
-            env=environment,
+            env=worker_environment(root),
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
@@ -92,4 +114,4 @@ def run_worker(task: dict[str, Any], *, seconds: float, workdir: str) -> Any:
     return outcome["value"]
 
 
-__all__ = ["WORKER", "run_worker", "where"]
+__all__ = ["WORKER", "run_worker", "where", "worker_environment"]

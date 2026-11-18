@@ -392,3 +392,47 @@ def test_writing_never_follows_a_test_mode_switch() -> None:
     test, test_body = ok_with_file("format_xml", {"xml": "<r><a/></r>"}, test_mode=True)
     assert real_body == test_body
     assert real["sha256"] == test["sha256"]
+
+
+def test_the_worker_gets_a_minimal_environment(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    monkeypatch.setenv("FS_SECRET_TOKEN", "do-not-pass")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "do-not-pass")
+    monkeypatch.setenv("HTTPS_PROXY", "http://proxy.example")
+    monkeypatch.setattr(sandbox.sys, "path", ["", "/usr/lib/python3", "/nonexistent"])
+    environment = sandbox.worker_environment("/bundle")
+    assert set(environment) <= {
+        "PATH",
+        "PYTHONPATH",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONIOENCODING",
+        "LC_ALL",
+        "TMPDIR",
+    }
+    entries = environment["PYTHONPATH"].split(os.pathsep)
+    assert entries[0] == "/bundle"
+    assert "/nonexistent" not in entries
+    assert "do-not-pass" not in str(environment)
+
+
+def test_the_worker_process_sees_only_that_environment(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """End to end: a real step still works while a secret sits in the parent's environment."""
+    monkeypatch.setenv("FS_SECRET_TOKEN", "do-not-pass")
+    captured = {}
+    real_run = sandbox.subprocess.run
+
+    def spy(*args, **kwargs):  # type: ignore[no-untyped-def]
+        captured.update(kwargs["env"])
+        return real_run(*args, **kwargs)
+
+    monkeypatch.setattr(sandbox.subprocess, "run", spy)
+    result = ok("check_xml", {"xml": "<r/>"})
+    assert result["well_formed"] is True
+    assert "FS_SECRET_TOKEN" not in captured
+    assert set(captured) <= {
+        "PATH",
+        "PYTHONPATH",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONIOENCODING",
+        "LC_ALL",
+        "TMPDIR",
+    }
