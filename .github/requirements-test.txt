@@ -1,0 +1,3 @@
+# Installed by CI for the tests; the runtime installs python_requirements itself.
+# Same pin as extension.yaml python_requirements.
+lxml==6.1.3
