@@ -832,7 +832,8 @@ operations:
 - operation_id: transform_xslt
   display_name: Transform XML with XSLT
   description: 'Applies an XSLT 1.0 stylesheet. The stylesheet cannot read or write files, reach the network
-    or call extensions: document(), xsl:import, xsl:include and exsl:document are refused.'
+    or call extensions: document(), xsl:import, xsl:include and exsl:document are refused. The file follows
+    xsl:output method: xml gives result.xml, html result.html, text result.txt.'
   operation_kind: action
   category: data
   workflow_visible: true
@@ -882,6 +883,13 @@ operations:
       - string
       - 'null'
       description: The output as text, when it is at most 256 KiB.
+  - name: file_presentation
+    value_type: object
+    schema:
+      type:
+      - object
+      - 'null'
+      description: The file's name and type for display (html and text output); none for xml.
   - name: messages
     value_type: array
     schema:
@@ -889,6 +897,27 @@ operations:
       items:
         type: string
       description: Texts of xsl:message.
+  - name: output_method
+    value_type: text
+    schema:
+      type:
+      - string
+      - 'null'
+      description: xml, html or text, as xsl:output method says.
+  - name: file_name
+    value_type: text
+    schema:
+      type:
+      - string
+      - 'null'
+      description: result.xml, result.html or result.txt.
+  - name: content_type
+    value_type: text
+    schema:
+      type:
+      - string
+      - 'null'
+      description: 'The file''s type: application/xml or text/plain.'
   - name: size_bytes
     value_type: integer
     schema:
@@ -913,7 +942,11 @@ operations:
   result_fields:
   - result.file
   - result.output
+  - result.file_presentation
   - result.messages
+  - result.output_method
+  - result.file_name
+  - result.content_type
   - result.size_bytes
   - result.sha256
   - result.warnings

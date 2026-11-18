@@ -391,7 +391,8 @@ actions:
 - action_id: transform_xslt
   title: Transform XML with XSLT
   description: 'Applies an XSLT 1.0 stylesheet. The stylesheet cannot read or write files, reach the network
-    or call extensions: document(), xsl:import, xsl:include and exsl:document are refused.'
+    or call extensions: document(), xsl:import, xsl:include and exsl:document are refused. The file follows
+    xsl:output method: xml gives result.xml, html result.html, text result.txt.'
   required_scopes:
   - extension:invoke
   - artifact:read
@@ -425,7 +426,11 @@ actions:
   result_fields:
   - file
   - output
+  - file_presentation
   - messages
+  - output_method
+  - file_name
+  - content_type
   - size_bytes
   - sha256
   - warnings

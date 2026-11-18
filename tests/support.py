@@ -29,7 +29,8 @@ class Plane:
     def writer(self, payload: Any, chunks: Iterable[bytes], **kw: Any) -> dict[str, Any]:
         body = b"".join(chunks)
         self.saved.append({"body": body, **kw})
-        return {"artifact_handle": f"artifact:out-{len(self.saved)}"}
+        number = len(self.saved)
+        return {"artifact_handle": f"artifact:out-{number}", "artifact_id": f"out-{number}"}
 
     @property
     def body(self) -> bytes:

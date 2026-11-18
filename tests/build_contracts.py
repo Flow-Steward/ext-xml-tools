@@ -219,6 +219,14 @@ def outputs_of(operation: specs.Operation) -> list[specs.Output]:
                     "any" if spec.inline_json else None,
                 )
             )
+    if spec is not None and spec.presentation:
+        outputs.append(
+            specs.Output(
+                spec.presentation,
+                "object",
+                "The file's name and type for display (html and text output); none for xml.",
+            )
+        )
     names = {o.name for o in outputs}
     outputs.extend(o for o in operation.outputs if o.name not in names)
     if spec is not None:
@@ -299,6 +307,11 @@ def artifact_policies() -> dict[str, Any]:
                     "max_size_bytes": ARTIFACT_MAX_BYTES,
                     "max_size_env": ARTIFACT_MAX_ENV,
                     "retention_class": "run_window",
+                    **(
+                        {"presentation": {"claim_output": spec.presentation}}
+                        if spec.presentation
+                        else {}
+                    ),
                 }
             ]
         policies.append(entry)

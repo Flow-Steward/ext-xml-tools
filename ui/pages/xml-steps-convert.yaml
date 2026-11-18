@@ -37,7 +37,7 @@ components:
   body: |
     ### Transform XML with XSLT
 
-    Applies an XSLT 1.0 stylesheet. The stylesheet cannot read or write files, reach the network or call extensions: document(), xsl:import, xsl:include and exsl:document are refused.
+    Applies an XSLT 1.0 stylesheet. The stylesheet cannot read or write files, reach the network or call extensions: document(), xsl:import, xsl:include and exsl:document are refused. The file follows xsl:output method: xml gives result.xml, html result.html, text result.txt.
 
     Action id `transform_xslt` · saves a file
 
@@ -53,7 +53,11 @@ components:
 
     - `file` (workflow file): The transformation's output, as a workflow file.
     - `output` (text): The output as text, when it is at most 256 KiB.
+    - `file_presentation` (object): The file's name and type for display (html and text output); none for xml.
     - `messages` (list): Texts of xsl:message.
+    - `output_method` (text): xml, html or text, as xsl:output method says.
+    - `file_name` (text): result.xml, result.html or result.txt.
+    - `content_type` (text): The file's type: application/xml or text/plain.
     - `size_bytes` (whole number): The result file's size.
     - `sha256` (text): The result file's SHA-256.
     - `warnings` (list): What the step could not do fully or what to check.

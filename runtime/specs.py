@@ -73,6 +73,8 @@ class FileOutput:
     inline_field: str | None = None
     inline_description: str = ""
     inline_json: bool = False
+    #: The step names the file and its type itself (ADR 0045 presentation claim).
+    presentation: str | None = None
 
 
 @dataclass(frozen=True)
@@ -498,7 +500,8 @@ OPERATIONS: tuple[Operation, ...] = (
         "transform",
         "Applies an XSLT 1.0 stylesheet. The stylesheet cannot read or write files, reach the "
         "network or call extensions: document(), xsl:import, xsl:include and exsl:document are "
-        "refused.",
+        "refused. The file follows xsl:output method: xml gives result.xml, html result.html, "
+        "text result.txt.",
         (
             _xml(),
             Document(
@@ -521,6 +524,9 @@ OPERATIONS: tuple[Operation, ...] = (
         ),
         (
             Output("messages", "array", "Texts of xsl:message.", "strings"),
+            Output("output_method", "text", "xml, html or text, as xsl:output method says."),
+            Output("file_name", "text", "result.xml, result.html or result.txt."),
+            Output("content_type", "text", "The file's type: application/xml or text/plain."),
             *FILE_FACTS,
             WARNINGS,
         ),
@@ -534,6 +540,7 @@ OPERATIONS: tuple[Operation, ...] = (
             inline_field="output",
             inline_description="The output as text, when it is at most "
             f"{limits.MAX_INLINE_BYTES // 1024} KiB.",
+            presentation="file_presentation",
         ),
     ),
     Operation(

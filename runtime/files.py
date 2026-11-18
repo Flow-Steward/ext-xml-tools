@@ -147,8 +147,8 @@ def save(
     binding_key: str,
     content_type: str,
     writer: ArtifactWriter,
-) -> str:
-    """Save the result file as a workflow file; its handle."""
+) -> tuple[str, str]:
+    """Save the result file as a workflow file; its handle and artifact id."""
     try:
         written = writer(
             dict(payload),
@@ -168,7 +168,10 @@ def save(
         raise ExtensionError(
             errors.ARTIFACT_OUTPUT_UNAVAILABLE, "The result file could not be saved"
         )
-    return handle.strip()
+    artifact_id = written.get("artifact_id") if isinstance(written, Mapping) else None
+    if not isinstance(artifact_id, str) or not artifact_id.strip():
+        artifact_id = _bare(handle.strip())
+    return handle.strip(), artifact_id.strip()
 
 
 __all__ = ["Source", "download", "file_chunks", "find_descriptor", "handle_of", "save"]

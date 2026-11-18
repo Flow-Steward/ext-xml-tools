@@ -152,9 +152,43 @@ def transform_xslt(job: Job) -> dict[str, Any]:
     output = bytes(result) if result is not None else b""
     with open(job.out_path, "wb") as out:
         out.write(output)
-    declared = style_tree.getroot().find(f"{{{XSLT}}}output")
-    encoding = (declared.get("encoding") if declared is not None else None) or "UTF-8"
-    return {"messages": messages, "_encoding": encoding}
+    declared = style_tree.getroot().findall(f"{{{XSLT}}}output")
+    encoding = next((d.get("encoding") for d in reversed(declared) if d.get("encoding")), None)
+    method = output_method(declared, result)
+    filename, content_type = OUTPUT_FILES[method]
+    facts: dict[str, Any] = {
+        "messages": messages,
+        "_encoding": encoding or "UTF-8",
+        "output_method": method,
+        "file_name": filename,
+        "content_type": content_type,
+    }
+    if method != "xml":
+        facts["_presentation"] = {"filename": filename, "content_type": content_type}
+    return facts
+
+
+#: The file for each xsl:output method. The upload is always application/xml (one type
+#: per output in the policy); html and text are renamed and retyped by a presentation
+#: claim (ADR 0045), whose allowed types exclude text/html, so HTML is shown as text.
+OUTPUT_FILES: dict[str, tuple[str, str]] = {
+    "xml": ("result.xml", "application/xml"),
+    "html": ("result.html", "text/plain"),
+    "text": ("result.txt", "text/plain"),
+}
+
+
+def output_method(declared: list[Any], result: Any) -> str:
+    """xsl:output method, or the XSLT 1.0 default: html when the result's root is html."""
+    for node in reversed(declared):
+        method = (node.get("method") or "").strip()
+        if method:
+            local = method.rsplit(":", 1)[-1].lower()
+            return local if local in OUTPUT_FILES else "xml"
+    root = result.getroot() if result is not None else None
+    if root is not None and isinstance(root.tag, str) and root.tag.lower() == "html":
+        return "html"
+    return "xml"
 
 
 # ---------------------------------------------------------------------------

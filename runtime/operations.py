@@ -294,7 +294,7 @@ def _attach_file(
         with open(out_path, "wb"):
             pass
     size = os.path.getsize(out_path)
-    result["file"] = files.save(
+    result["file"], artifact_id = files.save(
         payload,
         out_path,
         binding_key="result_file",
@@ -303,6 +303,20 @@ def _attach_file(
     )
     result["size_bytes"] = size
     result["sha256"] = files.sha256_file(out_path)
+    if spec.presentation:
+        claimed = result.pop("_presentation", None)
+        result[spec.presentation] = (
+            {
+                "artifact_id": artifact_id,
+                "binding_key": "result_file",
+                "filename": claimed["filename"],
+                "content_type": claimed["content_type"],
+                "size_bytes": size,
+                "sha256": result["sha256"],
+            }
+            if isinstance(claimed, Mapping)
+            else None
+        )
     if not spec.inline_field:
         return
     result[spec.inline_field] = None

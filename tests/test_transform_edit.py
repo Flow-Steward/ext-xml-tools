@@ -407,3 +407,70 @@ def test_compare_max_differences() -> None:
 def test_compare_from_files() -> None:
     result = ok("compare_xml", files={"left_file": ("l", b"<r/>"), "right_file": ("r", b"<s/>")})
     assert result["equal"] is False
+
+
+def _style(output: str, body: str) -> str:
+    return (
+        '<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">'
+        f'{output}<xsl:template match="/">{body}</xsl:template></xsl:stylesheet>'
+    )
+
+
+@pytest.mark.parametrize(
+    ("output", "body", "method", "name", "kind"),
+    [
+        ('<xsl:output method="xml"/>', "<o/>", "xml", "result.xml", "application/xml"),
+        ("", "<o/>", "xml", "result.xml", "application/xml"),
+        ('<xsl:output method="html"/>', "<p>x</p>", "html", "result.html", "text/plain"),
+        ("", "<html><body>x</body></html>", "html", "result.html", "text/plain"),
+        ('<xsl:output method="text"/>', "plain", "text", "result.txt", "text/plain"),
+    ],
+)
+def test_the_xslt_file_follows_the_output_method(
+    output: str, body: str, method: str, name: str, kind: str
+) -> None:
+    from support import run
+
+    response, plane = run("transform_xslt", {"xml": "<r/>", "stylesheet": _style(output, body)})
+    assert response["ok"] is True, response
+    result = response["result"]
+    assert result["output_method"] == method
+    assert result["file_name"] == name
+    assert result["content_type"] == kind
+    # The upload itself always carries the policy's type; html and text are renamed and
+    # retyped by the presentation claim the host checks (ADR 0045).
+    assert plane.saved[0]["content_type"] == "application/xml"
+    claim = result["file_presentation"]
+    if method == "xml":
+        assert claim is None
+    else:
+        assert claim == {
+            "artifact_id": "out-1",
+            "binding_key": "result_file",
+            "filename": name,
+            "content_type": kind,
+            "size_bytes": len(plane.body),
+            "sha256": result["sha256"],
+        }
+
+
+def test_the_presentation_claim_passes_the_hosts_own_rules() -> None:
+    """The claim uses only a type and a file name the host accepts (no text/html)."""
+    from runtime.ops_util import OUTPUT_FILES
+
+    allowed = {"text/plain", "application/octet-stream"}
+    for method, (name, kind) in OUTPUT_FILES.items():
+        if method != "xml":
+            assert kind in allowed
+            assert "/" not in name and name.strip() == name
+
+
+def test_the_policy_declares_the_presentation() -> None:
+    import yaml
+    from support import BUNDLE
+
+    policies = yaml.safe_load((BUNDLE / "contracts/artifact_policies.yaml").read_text())
+    (policy,) = [p for p in policies["artifact_policies"] if p["operation_id"] == "transform_xslt"]
+    assert policy["outputs"][0]["presentation"] == {"claim_output": "file_presentation"}
+    others = [p for p in policies["artifact_policies"] if p["operation_id"] != "transform_xslt"]
+    assert all("presentation" not in o for p in others for o in p.get("outputs", []))
